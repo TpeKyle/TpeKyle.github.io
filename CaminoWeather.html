@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 朝聖之路・即時天氣看板</title>
+    <style>
+        :root {
+            --camino-burgundy: #800020;  /* 經典朝聖酒紅 */
+            --camino-yellow: #F4C430;    /* 聖雅各十字/扇貝金黃 */
+            --camino-blue: #0038A8;      /* 官方路標與指標經典藍 */
+            --camino-stone: #F5EFEB;     /* 溫暖的朝聖石磚大地色（網頁背景） */
+            --card-bg: #FFFFFF;          /* 純白卡片襯托天候資訊 */
+            --weather-bg: #F9FBFC;       /* 天氣區塊微亮清爽底色 */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, "Microsoft JhengHei";
+            background-color: var(--camino-stone);
+            color: #333333;
+            line-height: 1.5;
+        }
+
+        /* 頂部橫幅 */
+        header {
+            background: linear-gradient(135deg, rgba(128, 0, 32, 0.9) 0%, rgba(0, 56, 168, 0.85) 100%), 
+                        url('https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Catedral_de_Santiago_de_Compostela._Galiza_2022-eue--13.jpg/1280px-Catedral_de_Santiago_de_Compostela._Galiza_2022-eue--13.jpg?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;
+            color: white;
+            text-align: center;
+            padding: 3.5rem 1rem;
+            border-bottom: 6px solid var(--camino-yellow);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        /* 朝盛標題內圖標排版 */
+        .header-title-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.2rem;
+            margin-bottom: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .camino-logo-img {
+            width: 55px;
+            height: 55px;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: var(--camino-yellow);
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        main {
+            max-width: 950px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* 黃色箭頭引導區塊樣式 */
+        .arrow-guide {
+            background-color: var(--card-bg);
+            border-left: 6px solid var(--camino-yellow);
+            border-right: 6px solid var(--camino-blue);
+            padding: 1.2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .camino-arrow-img {
+            width: 60px;
+            height: auto;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .guide-text {
+            font-weight: bold;
+            color: var(--camino-burgundy);
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* 每日行程卡片 */
+        .day-card {
+            background-color: var(--card-bg);
+            border: 1px solid #E2D9D5;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 6px 12px rgba(128,0,32,0.03);
+            position: relative;
+        }
+
+        .day-card::before {
+            content: "🐚";
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            font-size: 1.2rem;
+            opacity: 0.2;
+        }
+
+        /* 卡片頭部 */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--camino-burgundy);
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            margin-bottom: 1.2rem;
+            border-left: 5px solid var(--camino-blue);
+            border-right: 5px solid var(--camino-yellow);
+        }
+
+        .date-badge {
+            color: var(--camino-yellow);
+            font-size: 1.05rem;
+            font-weight: bold;
+        }
+
+        .day-title {
+            font-size: 1.25rem;
+            color: #FFFFFF;
+            font-weight: bold;
+        }
+
+        .route-info {
+            font-weight: bold;
+            margin-bottom: 1.2rem;
+            font-size: 1.1rem;
+            color: #3E3432;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .distance-tag {
+            background-color: #FFF9E6;
+            color: #B8860B;
+            border: 1px solid var(--camino-yellow);
+            font-size: 0.85rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        /* 天氣外框 */
+        .weather-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.2rem;
+            margin-top: 0.5rem;
+        }
+
+        .weather-slot {
+            background-color: var(--weather-bg);
+            border-radius: 12px;
+            padding: 0.8rem;
+            border: 1px solid #EAEFF2;
+        }
+
+        .weather-slot h4 {
+            font-size: 0.9rem;
+            color: var(--camino-blue);
+            margin-bottom: 0.6rem;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            font-weight: bold;
+        }
+
+        /* 響應式西班牙浮動時間樣式（已移至標準 Head 區） */
+        #spain-time {
+            position: fixed;
+            left: 1.5rem;
+            bottom: 1.5rem;
+            z-index: 9999;
+            font-weight: bold;
+            color: #ffffff;
+            background-color: rgba(128, 0, 32, 0.85); /* 加入酒紅微透底色提升易讀性 */
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            border: 1px solid var(--camino-yellow);
+            font-family: Arial, sans-serif;
+            font-size: 1.1rem;
+            pointer-events: none;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        footer {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            margin-top: 4rem;
+            background-color: var(--camino-burgundy);
+            color: white;
+            font-size: 0.9rem;
+            border-top: 6px solid var(--camino-yellow);
+        }
+
+        footer span {
+            color: var(--camino-yellow);
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            #spain-time {
+                left: 1rem;
+                bottom: 1rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title-container">
+            <img class="camino-logo-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Logo_Caminoeurope_Quadratisch_Icon_de.svg/960px-Logo_Caminoeurope_Quadratisch_Icon_de.svg.png" alt="Camino Logo">
+            <h1>Buen Camino! 2026 朝聖之路</h1>
+            <img class="camino-logo-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Logo_Caminoeurope_Quadratisch_Icon_de.svg/960px-Logo_Caminoeurope_Quadratisch_Icon_de.svg.png" alt="Camino Logo">
+        </div>
+        <p>🟦 即時天氣看板 🟨</p>
+    </header>
+
+    <!-- 浮動時間標籤 -->
+    <span id="spain-time">讀取中...</span>
+
+    <main>
+        <!-- 整合黃色箭頭素材的引導區塊（重構回頂部） -->
+        <div class="arrow-guide">
+            <img class="camino-arrow-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Camino_de_Santiago_arrow_guide.svg/1280px-Camino_de_Santiago_arrow_guide.svg.png" alt="Camino Arrow">
+            <div class="guide-text">
+                跟隨黃色箭頭與貝殼標誌的指引！祝您徒步旅程平安順利！
+            </div>
+            <img class="camino-arrow-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Camino_de_Santiago_arrow_guide.svg/1280px-Camino_de_Santiago_arrow_guide.svg.png" alt="Camino Arrow">
+        </div>
+
+        <div class="timeline">
+
+            <!-- Day 1 -->
+            <div class="day-card">
+                <div class="card-header">
+                    <span class="date-badge">6/11 (四)</span>
+                    <span class="day-title">第一天：香港轉機</span>
+                </div>
+                <div class="route-info">✈️ 國際航班 ➔ 抵達香港</div>
+                <div class="weather-container">
+                    <div class="weather-slot" style="grid-column: 1 / -1;">
+                        <h4>📍 抵達地天氣：香港 (Hong Kong)</h4>
+                        <a class="weatherwidget-io" href="https://forecast7.com/zh-tw/22d40114d11/hong-kong/" data-label_1="HONG KONG" data-label_2="WEATHER" data-font="微軟正黑體 (Microsoft JhengHei)" data-days="3" data-theme="weather_one" >HONG KONG WEATHER</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 2 -->
+            <div class="day-card">
+                <div class="card-header">
+                    <span class="date-badge">6/12 (五)</span>
+                    <span class="day-title">第二天：抵達馬德里</span>
+                </div>
+                <div class="route-info">✈️ 國際航班 ➔ 抵達Madrid</div>
+                <div class="weather-container">
+                    <div class="weather-slot" style="grid-column: 1 / -1;">
+                        <h4>📍 抵達地天氣：馬德里 (Madrid)</h4>
+                        <a class="weatherwidget-io" href="https://forecast7.com/zh-tw/40d42n3d70/madrid/" data-label_1="MADRID" data-label_2="WEATHER" data-font="微軟正黑體 (Microsoft JhengHei)" data-days="3" data-theme="weather_one" >MADRID WEATHER</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 3 -->
+            <div class="day-card">
+                <div class="card-header">
+                    <span class="date-badge">6/13 (六)</span>
+                    <span class="day-title">第三天：長途移動，集合</span>
+                </div>
+                <div class="route-info">🚄 Madrid ➔ Sarria (搭乘西班牙高鐵)</div>
+                <div class="weather-container">
+                    <div class="weather-slot">
+                        <h4>🛬 目的地：薩利亞 (Sarria)</h4>
+                        <a class="weatherwidget-io" href="https://forecast7.com/zh-tw/42d78n7d41/sarria/" data-label_1="SARRIA" data-label_2="WEATHER" data-font="微軟正黑體 (Microsoft JhengHei)" data-days="3" data-theme="weather_one" >SARRIA WEATHER</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 4 -->
+            <div class="day-card">
+                <div class="card-header">
+                    <span class="date-badge">6/14 (日)</span>
+                    <span class="day-title">第四天：徒步開拔第一天</span>
+                </div>
+                <div class="route-info">🥾 Sarria ➔ Portomarín <span class="distance-tag">👣 步行 22 Km</span></div>
+                <div class="weather-container">
+                    <div class="weather-slot">
+                        <h4>🔵 目的地：波爾托馬林 (Portomarín)</h4>
+                        <a class="weatherwidget-io" href="https://forecast7.com/zh-tw/42d81n7d62/portomarin/" data-label_1="PORTOMARÍN" data-label_2="WEATHER" data-font="微軟正黑體 (Microsoft JhengHei)" data-days="3" data-theme="weather_one" >PORTOMARÍN WEATHER</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 5 -->
+            <div class="day-card">
+                <div class="card-header">
+                    <span class="date-badge">6/15 (一)</span>
+                    <span class="day-title">第五天：穿梭山林驛站</span>
+                </div>
+                <div class="route-info">🥾 Portomarín ➔ Palas De Rei <span class="distance-tag">👣 步行 25 Km</span></div>
+                <div class="weather-container">
+                    <div class="weather-slot">
+                        <h4>🔵 目的地：帕拉斯德雷 (Palas De Rei)</h4>
+                        <a class="weatherwidget-io" href="https://forecast7.com/zh-tw/42d87n7d87/palas-de-rei/" data-label_1="PALAS DE REI" data-label_2="WEATHER" data-font="微軟正黑體 (Microsoft JhengHei)" data-days="3" data-theme="weather_one" >PALAS DE REI WEATHER</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 6 -->
+            <div class="day-card">
+                <div class="card-header">
+                    <span class="date-badge">6/16 (二)</span>
+                    <span class="day-title">第六天：長途耐力考驗</span>
+                </div>
+                <div class="route-info">🥾 Palas De Rei ➔ Arzúa <span class="distance-tag">👣 步行 29 Km</span></div>
+                <div class="weather-container">
+                    <div class="weather-slot">
+                        <h4>🔵 目的地：阿爾蘇阿 (Arzúa)</h4>
+                        <a class="weatherwidget-io" href="https://forecast7.com/zh-tw/42d93n8d16/arzua/" data-label_1="ARZÚA" data-label_2="WEATHER" data-font="微軟正黑體 (Microsoft JhengHei)" data-days="3" data-theme="weather_one" >ARZÚA WEATHER</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 7 -->
+            <div class="day-card">
+                <div class="card-header">
+                    <span class="date-badge">6/17 (三)</span>
+                    <span class="day-title">第七天：聖地牙哥前哨站</span>
+                </div>
+                <div class="route-info">🥾 Arzúa ➔ O Pedrouzo <span class="distance-tag">👣 步行 20 Km</span></div>
+                <div class="weather-container">
+                    <div class="weather-slot">
+                        <h4>🔵 目的地：奧佩德羅索 (O Pedrouzo)</h4>
+                        <a class="weatherwidget-io" href="https://forecast7.com/zh-tw/42d90n8d36/o-pedrouzo/" data-label_1="O PEDROUZO" data-label_2="WEATHER" data-font="微軟正黑體 (Microsoft JhengHei)" data-days="3" data-theme="weather_one" >O PEDROUZO WEATHER</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 8 -->
+            <div class="day-card">
+                <div class="card-header">
+                    <span class="date-badge">6/18 (四)</span>
+                    <span class="day-title">第八天：抵達大教堂終點</span>
+                </div>
+                <div class="route-info">⭐ O Pedrouzo ➔ Santiago De Compostela <span class="distance-tag">👣 步行 20 Km</span></div>
+                <div class="weather-container">
+                    <div class="weather-slot">
+                        <h4>🏆 終點站：聖地牙哥康波斯特拉 (Santiago)</h4>
+                        <a class="weatherwidget-io" href="https://forecast7.com/zh-tw/42d88n8d54/santiago-de-compostela/" data-label_1="SANTIAGO DE COMPOSTELA" data-label_2="WEATHER" data-font="微軟正黑體 (Microsoft JhengHei)" data-days="3" data-theme="weather_one" >SANTIAGO DE COMPOSTELA WEATHER</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 9 -->
+            <div class="day-card">
+                <div class="card-header">
+                    <span class="date-badge">6/19 (五)</span>
+                    <span class="day-title">第九天：回到市區</span>
+                </div>
+                <div class="route-info">🚄 Santiago De Compostela ➔ Madrid (搭乘高鐵)</div>
+                <div class="weather-container">
+                    <div class="weather-slot">
+                        <h4>🛬 目的地：西班牙馬德里 (Madrid)</h4>
+                        <a class="weatherwidget-io" href="https://forecast7.com/zh-tw/40d42n3d70/madrid/" data-label_1="MADRID" data-label_2="WEATHER" data-font="微軟正黑體 (Microsoft JhengHei)" data-days="3" data-theme="weather_one" >MADRID WEATHER</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 10 -->
+            <div class="day-card">
+                <div class="card-header">
+                    <span class="date-badge">6/20 (六)</span>
+                    <span class="day-title">第十天：市區觀光</span>
+                </div>
+                <div class="route-info">🥾  Madrid 🥾 </div>
+
+            </div>
+
+            <!-- Day 11 -->
+            <div class="day-card">
+                <div class="card-header">
+                    <span class="date-badge">6/21 (日)</span>
+                    <span class="day-title">第十一天：出發回家</span>
+                </div>
+                <div class="route-info">✈️ Madrid ➔ H.K.  ➔ Taiwan 6/22 (國際航班)</div>
+                <div class="weather-container">
+                    <div class="weather-slot">
+                        <h4>🏆 終點站：台北 (Taipei)</h4>
+                        <a class="weatherwidget-io" href="https://forecast7.com/zh-tw/25d03121d57/taipei-city/" data-label_1="TAIPEI" data-label_2="WEATHER" data-font="微軟正黑體 (Microsoft JhengHei)" data-days="3" data-theme="weather_one" >TAIPEI WEATHER</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer>
+        <p>🐚 Buen Camino! 2026 朝聖之路天氣即時看板 🐚</p>
+        <p>願聖雅各的<span>金黃扇貝</span>與<span>經典藍標</span>伴您同行，祝徒步平安順利！</p>
+    </footer>
+
+    <!-- JavaScript 邏輯：整合為單一時鐘更新與單一天氣腳本載入 -->
+    <script>
+    // 1. 西班牙馬德里即時時間計時器
+    function updateSpainTime() {
+        const now = new Date();
+        const options = {
+            timeZone: 'Europe/Madrid',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        };
+        const formatter = new Intl.DateTimeFormat('zh-TW', options);
+        document.getElementById('spain-time').innerText = "ES: " + formatter.format(now);
+    }
+    updateSpainTime();
+    setInterval(updateSpainTime, 1000);
+
+    // 2. WeatherWidget.io 核心驅動引擎（移至網頁最底部，全網頁僅需執行一次）
+    !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';fjs.parentNode.insertBefore(js,fjs);}}(document,'script','weatherwidget-io-js');
+    </script>
+
+</body>
+</html>
