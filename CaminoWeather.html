@@ -441,25 +441,27 @@
     </footer>
 
     <!-- JavaScript 邏輯：整合為單一時鐘更新與單一天氣腳本載入 -->
-    <script>
-    // 1. 西班牙馬德里即時時間計時器
+<script>
+    // 1. 西班牙馬德里即時時間計時器（已加入英文星期縮寫）
     function updateSpainTime() {
         const now = new Date();
         const options = {
             timeZone: 'Europe/Madrid',
             month: '2-digit',
             day: '2-digit',
+            weekday: 'short',    /* 關鍵：加入星期縮寫 (Sun, Mon, Tue...) */
             hour: '2-digit',
             minute: '2-digit',
             hour12: false
         };
-        const formatter = new Intl.DateTimeFormat('zh-TW', options);
+        // 改用 en-US 語系，確保星期和日期格式輸出為標準英文縮寫
+        const formatter = new Intl.DateTimeFormat('en-US', options);
         document.getElementById('spain-time').innerText = "ES: " + formatter.format(now);
     }
     updateSpainTime();
     setInterval(updateSpainTime, 1000);
 
-    // 2. WeatherWidget.io 核心驅動引擎（移至網頁最底部，全網頁僅需執行一次）
+    // 2. WeatherWidget.io 核心驅動引擎（全網頁僅需執行一次）
     !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';fjs.parentNode.insertBefore(js,fjs);}}(document,'script','weatherwidget-io-js');
     </script>
 
