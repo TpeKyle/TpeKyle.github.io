@@ -28,9 +28,9 @@
             line-height: 1.5;
         }
 
-        /* 頂部橫幅 */
+        /* 頂部橫幅：紅藍色塊調整為完美的黃金中間值不透明度 */
         header {
-            background: linear-gradient(135deg, rgba(128, 0, 32, 0.9) 0%, rgba(0, 56, 168, 0.85) 100%), 
+            background: linear-gradient(135deg, rgba(128, 0, 32, 0.68) 0%, rgba(0, 56, 168, 0.62) 100%), 
                         url('https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Catedral_de_Santiago_de_Compostela._Galiza_2022-eue--13.jpg/1280px-Catedral_de_Santiago_de_Compostela._Galiza_2022-eue--13.jpg?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;
             color: white;
             text-align: center;
@@ -60,7 +60,7 @@
         header h1 {
             font-size: 2.5rem;
             letter-spacing: 2px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
         header p {
@@ -68,7 +68,7 @@
             color: var(--camino-yellow);
             font-weight: bold;
             letter-spacing: 1px;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.4);
         }
 
         main {
@@ -212,7 +212,7 @@
             background: white;
         }
 
-        /* 響應式西班牙浮動時間樣式（已縮小兩個字號） */
+        /* 西班牙浮動時間桌機版樣式（0.9rem） */
         #spain-time {
             position: fixed;
             left: 1.5rem;
@@ -220,12 +220,12 @@
             z-index: 9999;
             font-weight: bold;
             color: #ffffff;
-            background-color: rgba(128, 0, 32, 0.85); /* 加入酒紅微透底色提升易讀性 */
+            background-color: rgba(128, 0, 32, 0.85);
             padding: 0.4rem 0.8rem;
             border-radius: 20px;
             border: 1px solid var(--camino-yellow);
             font-family: Arial, sans-serif;
-            font-size: 0.9rem;    /* 桌機版：調小2個字號 (1.1rem -> 0.9rem) */
+            font-size: 0.9rem;
             pointer-events: none;
             letter-spacing: 0.5px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
@@ -251,7 +251,7 @@
             #spain-time {
                 left: 1rem;
                 bottom: 1rem;
-                font-size: 0.75rem; /* 手機版：隨之縮小 (0.9rem -> 0.75rem) */
+                font-size: 0.825rem; /* 手機版專屬字號 */
             }
             .weather-container {
                 grid-template-columns: repeat(1, 1fr);
@@ -416,6 +416,7 @@
 
             <!-- Day 10 -->
             <div class="day-card">
+                <div class="day-card">
                 <div class="card-header">
                     <span class="date-badge">6/20 (六)</span>
                     <span class="day-title">第十天：回到馬德里</span>
