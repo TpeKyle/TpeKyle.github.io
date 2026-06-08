@@ -203,7 +203,16 @@
             font-weight: bold;
         }
 
-        /* 響應式西班牙浮動時間樣式（已移至標準 Head 區） */
+        /* <iframe> 直映設定 */
+        .weather-slot iframe {
+            width: 100%;
+            height: 135px;
+            border: none;
+            border-radius: 8px;
+            background: white;
+        }
+
+        /* 響應式西班牙浮動時間樣式（已縮小兩個字號） */
         #spain-time {
             position: fixed;
             left: 1.5rem;
@@ -216,7 +225,7 @@
             border-radius: 20px;
             border: 1px solid var(--camino-yellow);
             font-family: Arial, sans-serif;
-            font-size: 1.1rem;
+            font-size: 0.9rem;    /* 桌機版：調小2個字號 (1.1rem -> 0.9rem) */
             pointer-events: none;
             letter-spacing: 0.5px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
@@ -237,11 +246,15 @@
             font-weight: bold;
         }
 
+        /* RWD 支援 */
         @media (max-width: 768px) {
             #spain-time {
                 left: 1rem;
                 bottom: 1rem;
-                font-size: 0.9rem;
+                font-size: 0.75rem; /* 手機版：隨之縮小 (0.9rem -> 0.75rem) */
+            }
+            .weather-container {
+                grid-template-columns: repeat(1, 1fr);
             }
         }
     </style>
@@ -261,7 +274,7 @@
     <span id="spain-time">讀取中...</span>
 
     <main>
-        <!-- 整合黃色箭頭素材的引導區塊（重構回頂部） -->
+        <!-- 整合黃色箭頭素材的引導區塊 -->
         <div class="arrow-guide">
             <img class="camino-arrow-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Camino_de_Santiago_arrow_guide.svg/1280px-Camino_de_Santiago_arrow_guide.svg.png" alt="Camino Arrow">
             <div class="guide-text">
@@ -399,7 +412,6 @@
                     <span class="day-title">第九天：聖地牙哥觀光</span>
                 </div>
                 <div class="route-info">🥾 Santiago De Compostela</div>
-
             </div>
 
             <!-- Day 10 -->
@@ -440,28 +452,42 @@
         <p>願聖雅各的<span>金黃扇貝</span>與<span>經典藍標</span>伴您同行，祝徒步平安順利！</p>
     </footer>
 
-    <!-- JavaScript 邏輯：整合為單一時鐘更新與單一天氣腳本載入 -->
-<script>
-    // 1. 西班牙馬德里即時時間計時器（已加入英文星期縮寫）
+    <!-- JavaScript 邏輯段 -->
+    <script>
     function updateSpainTime() {
         const now = new Date();
-        const options = {
+        
+        // 1. 取得馬德里時區的各時間零組件
+        const formatter = new Intl.DateTimeFormat('en-US', {
             timeZone: 'Europe/Madrid',
             month: '2-digit',
             day: '2-digit',
-            weekday: 'short',    /* 關鍵：加入星期縮寫 (Sun, Mon, Tue...) */
+            weekday: 'short',
             hour: '2-digit',
             minute: '2-digit',
             hour12: false
-        };
-        // 改用 en-US 語系，確保星期和日期格式輸出為標準英文縮寫
-        const formatter = new Intl.DateTimeFormat('en-US', options);
-        document.getElementById('spain-time').innerText = "ES: " + formatter.format(now);
+        });
+        
+        // 2. 解析零組件以重新自訂拼接順序
+        const parts = formatter.formatToParts(now);
+        let month, day, weekday, hour, minute;
+        
+        for (const part of parts) {
+            if (part.type === 'month') month = part.value;
+            if (part.type === 'day') day = part.value;
+            if (part.type === 'weekday') weekday = part.value;
+            if (part.type === 'hour') hour = part.value;
+            if (part.type === 'minute') minute = part.value;
+        }
+        
+        // 3. 強制輸出為「ES: 月/日 星期 時間」順序
+        document.getElementById('spain-time').innerText = `ES: ${month}/${day} ${weekday} ${hour}:${minute}`;
     }
+    
     updateSpainTime();
     setInterval(updateSpainTime, 1000);
 
-    // 2. WeatherWidget.io 核心驅動引擎（全網頁僅需執行一次）
+    // WeatherWidget 驅動腳本
     !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';fjs.parentNode.insertBefore(js,fjs);}}(document,'script','weatherwidget-io-js');
     </script>
 
